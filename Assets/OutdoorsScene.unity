@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2157.0132, g: 2259.5713, b: 3279.3508, a: 1}
+  m_IndirectSpecularColor: {r: 2160.043, g: 2263.8008, b: 3286.5664, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -558,12 +558,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pos:
   - deg0
-  - deg30
-  - deg-30
   ecc:
   - 0
-  - +30
-  - -30
   stimuli:
   - face1
   - face2
@@ -1470,6 +1466,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1206417406}
   - component: {fileID: 1206417405}
+  - component: {fileID: 1206417407}
   m_Layer: 0
   m_Name: eyeTracking
   m_TagString: Untagged
@@ -1514,6 +1511,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1206417407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1206417404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94a84025532663b49a8d4cf65e835f3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nameInputField: {fileID: 0}
 --- !u!1 &1328071649
 GameObject:
   m_ObjectHideFlags: 0

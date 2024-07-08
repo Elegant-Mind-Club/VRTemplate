@@ -148,30 +148,30 @@ public class StimControl : MonoBehaviour
         {
             instrNum++;
             instrText.GetComponent<TextMeshPro>().text = instrTextValues[instrNum];
-            GameObject.Find("face1").transform.position = GameObject.Find("deg0").transform.position;
+            GameObject.Find(stimuli[instrNum-1]).transform.position = GameObject.Find("deg0").transform.position;
         }
         // moves onto face 2 / instruction 3
         if (Input.GetKeyDown(KeyCode.V) && instrNum == 1)
         {
             instrNum++;
             instrText.GetComponent<TextMeshPro>().text = instrTextValues[instrNum];
-            GameObject.Find("face1").transform.position = GameObject.Find("disappearPos").transform.position;
-            GameObject.Find("face2").transform.position = GameObject.Find("deg0").transform.position;
+            GameObject.Find(stimuli[instrNum-2]).transform.position = GameObject.Find("disappearPos").transform.position;
+            GameObject.Find(stimuli[instrNum-1]).transform.position = GameObject.Find("deg0").transform.position;
         }
         // moves onto face 3 / instruction 4
         if (Input.GetKeyDown(KeyCode.B) && instrNum == 2)
         {
             instrNum++;
             instrText.GetComponent<TextMeshPro>().text = instrTextValues[instrNum];
-            GameObject.Find("face2").transform.position = GameObject.Find("disappearPos").transform.position;
-            GameObject.Find("face3").transform.position = GameObject.Find("deg0").transform.position;
+            GameObject.Find(stimuli[instrNum-2]).transform.position = GameObject.Find("disappearPos").transform.position;
+            GameObject.Find(stimuli[instrNum-1]).transform.position = GameObject.Find("deg0").transform.position;
         }
         // describes training rounds and removes face 3
         if (Input.GetKeyDown(KeyCode.N) && instrNum == 3)
         {
             instrNum++;
             instrText.GetComponent<TextMeshPro>().text = instrTextValues[instrNum];
-            GameObject.Find("face3").transform.position = GameObject.Find("disappearPos").transform.position;
+            GameObject.Find(stimuli[instrNum-2]).transform.position = GameObject.Find("disappearPos").transform.position;
         }
         // removes instruction text and sets up phase 2
         if (Input.GetKeyDown(KeyCode.Space) && instrNum == 4)
@@ -191,9 +191,9 @@ public class StimControl : MonoBehaviour
         if (!in_use)
         {
             // sets response key
-            if (Input.GetKeyDown(KeyCode.V)) { responseKey = "face1"; }
-            else if (Input.GetKeyDown(KeyCode.B)) { responseKey = "face2"; }
-            else if (Input.GetKeyDown(KeyCode.N)) { responseKey = "face3"; }
+            if (Input.GetKeyDown(KeyCode.V)) { responseKey = stimuli[0]; }
+            else if (Input.GetKeyDown(KeyCode.B)) { responseKey = stimuli[1]; }
+            else if (Input.GetKeyDown(KeyCode.N)) { responseKey = stimuli[2]; }
             // if one of the buttons has been pressed, log data and set up next trial
             if (responseKey != "")
             {
@@ -268,9 +268,9 @@ public class StimControl : MonoBehaviour
         if (!in_use)
         {
             // sets response key
-            if (Input.GetKeyDown(KeyCode.V)) { responseKey = "face1"; }
-            else if (Input.GetKeyDown(KeyCode.B)) { responseKey = "face2"; }
-            else if (Input.GetKeyDown(KeyCode.N)) { responseKey = "face3"; }
+            if (Input.GetKeyDown(KeyCode.V)) { responseKey = stimuli[0]; }
+            else if (Input.GetKeyDown(KeyCode.B)) { responseKey = stimuli[1]; }
+            else if (Input.GetKeyDown(KeyCode.N)) { responseKey = stimuli[2]; }
             // if one of the buttons has been pressed, log data and set up next trial
             if (responseKey != "")
             {
