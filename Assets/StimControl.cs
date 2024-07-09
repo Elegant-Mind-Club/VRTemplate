@@ -22,6 +22,7 @@ public class StimControl : MonoBehaviour
     public string[] pos = { "deg0", "deg30", "deg-30" }; // different random positions available (Unity object names)
     public string[] ecc = { "0", "+30", "-30" }; // names to write to csv file, corresponding respectively to pos
     public string[] stimuli = { "face1", "face2", "face3" }; // names of different stimuli (Unity object names)
+    public bool cueOn = true;
 
     // self explanatory
     public string[] instrTextValues = {
@@ -83,22 +84,31 @@ public class StimControl : MonoBehaviour
 
     IEnumerator change()
     {
-        currentTrial++;
-        yield return new WaitForSecondsRealtime(preCue_time); // wait before trial starts
-        GameObject.Find("cue").transform.position = GameObject.Find("cuePos").transform.position; // Cue appears at center
-        log = DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // CueShowTime
-        yield return new WaitForSecondsRealtime(cue_time); // Cue stays there for this long
-
         // randomizes stimulus every round
         ivIndex = rnd.Next(0, pos.Length);
         stimIndex = rnd.Next(0, stimuli.Length);
+        currentTrial++;
 
-        // wait time between cue and stimulus
-        cueToStim_time = (float)((rnd.NextDouble() * (time_max - time_min)) + time_min);
+        yield return new WaitForSecondsRealtime(preCue_time); // wait before trial starts
 
-        GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
-        // waits before showing stimulus
-        yield return new WaitForSecondsRealtime(cueToStim_time);
+        if (cueOn == true)
+        {
+            GameObject.Find("cue").transform.position = GameObject.Find("cuePos").transform.position; // Cue appears at center
+            log = DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // CueShowTime
+            yield return new WaitForSecondsRealtime(cue_time); // Cue stays there for this long
+
+
+            // wait time between cue and stimulus
+            cueToStim_time = (float)((rnd.NextDouble() * (time_max - time_min)) + time_min);
+
+            GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
+                                                                                                            // waits before showing stimulus
+            yield return new WaitForSecondsRealtime(cueToStim_time);
+        }
+        else
+        {
+            log = DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // CueShowTime
+        }
 
         // shows stimulus
         GameObject.Find(stimuli[stimIndex]).transform.position = GameObject.Find(pos[ivIndex]).transform.position; // StimType appears

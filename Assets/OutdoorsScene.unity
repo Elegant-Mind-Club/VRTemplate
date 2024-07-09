@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 2159.7473, g: 2263.6448, b: 3286.6138, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -565,6 +565,7 @@ MonoBehaviour:
   - face1
   - face2
   - face3
+  cueOn: 0
   instrTextValues:
   - "You will be reacting to three different faces in this protocol, and\r\n    pressing
     the keys v, b, and n for each one. Please try to react to the\r\n    faces and
