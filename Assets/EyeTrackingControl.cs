@@ -7,13 +7,6 @@ using Varjo.XR;
 using UnityEngine.XR;
 using System.Linq;
 
-/*
-public methods:
-CalibrateGaze() -- calibrates using set mode
-StartLog() -- start logging eye tracking data
-EndLog() -- finish logging eye tracking data
-*/
-
 public class EyeTrackingControl : MonoBehaviour
 {
 
@@ -45,8 +38,9 @@ public class EyeTrackingControl : MonoBehaviour
     private VarjoEyeTracking.GazeOutputFrequency frequency = VarjoEyeTracking.GazeOutputFrequency.MaximumSupported;
 
     // stuff for logging data
+    public string fileName;
     private static readonly string[] Columns = { "CaptureTime", "CalcXEccentricity", 
-        "CalcYEccentricity", "CombinedGazeForward", "Valid"};
+        "CalcYEccentricity", "Valid"};
     private static string calcPrecision = "F6"; // precision after decimal for calculations and tracking
     private const string ValidString = "VALID";
     private const string InvalidString = "INVALID";
@@ -56,12 +50,11 @@ public class EyeTrackingControl : MonoBehaviour
     private List<VarjoEyeTracking.GazeData> dataSinceLastUpdate;
     private StreamWriter writer = null;
     public bool logging = false;
-    public string fileName = "";
 
     // Start is called before the first frame update
     private void Start()
     {
-        xrCamera = Camera.main;
+        xrCamera = Camera.main; // gets the main camera
         // sets eye tracking parameters
         VarjoEyeTracking.SetGazeOutputFrequency(frequency);
         VarjoEyeTracking.SetGazeOutputFilterType(gazeFilterType);
@@ -93,17 +86,15 @@ public class EyeTrackingControl : MonoBehaviour
         // starts or stops logging if logging key is pressed
         if (Input.GetKeyDown(loggingToggleKey))
         {
-            Debug.Log("b");
             // Check if gaze is calibrated
-            if (!VarjoEyeTracking.IsGazeCalibrated())
+            if (VarjoEyeTracking.IsGazeCalibrated())
             {
                 Debug.Log("GAZE IS NOT CALIBRATED - isgazecalibrated:" + VarjoEyeTracking.IsGazeCalibrated());
             }
-            if (!logging)
+            else if (!logging)
                 StartLogging();
             else
                 StopLogging();
-            Debug.Log("asdf1");
             return;
         }
 
@@ -127,7 +118,7 @@ public class EyeTrackingControl : MonoBehaviour
         // if data isn't valid, warn user
         if (data.status == VarjoEyeTracking.GazeStatus.Invalid)
         {
-            //Debug.Log("GAZE IS INVALID");
+            Debug.Log("GAZE IS INVALID");
         }
         string[] logData = new string[Columns.Length];
     
@@ -140,26 +131,10 @@ public class EyeTrackingControl : MonoBehaviour
         float z = data.gaze.forward.z;
         logData[1] = (Math.Atan(x / z) / Math.PI * 180).ToString(calcPrecision);
         logData[2] = (Math.Atan(y / z) / Math.PI * 180).ToString(calcPrecision);
-        logData[3]= data.gaze.forward.ToString(calcPrecision);
+        
+        // Combined gaze validity
         bool invalid = data.status == VarjoEyeTracking.GazeStatus.Invalid;
-        logData[4] = invalid ? InvalidString : ValidString;
-
-        /* // Combined gaze
-         bool invalid = data.status == VarjoEyeTracking.GazeStatus.Invalid;
-         logData[3] = invalid ? "" : data.gaze.forward.ToString(calcPrecision);
-         logData[4] = invalid ? "" : data.gaze.origin.ToString(calcPrecision);*/
-        //logData[4] = invalid ? InvalidString : ValidString;
-
-        // left and right eye forward
-        /*bool leftInvalid = data.leftStatus == VarjoEyeTracking.GazeEyeStatus.Invalid;
-        logData[6] = leftInvalid ? "" : data.left.forward.ToString(calcPrecision);
-
-        bool rightInvalid = data.rightStatus == VarjoEyeTracking.GazeEyeStatus.Invalid;
-        logData[7] = rightInvalid ? "" : data.right.forward.ToString(calcPrecision);
-*/
-        /*// left and right eye position
-        logData[8] = leftInvalid ? "" : data.left.origin.ToString("F3");
-        logData[9] = rightInvalid ? "" : data.right.origin.ToString("F3");*/
+        logData[3] = invalid ? InvalidString : ValidString;
 
         Log(logData);
     }
@@ -181,19 +156,26 @@ public class EyeTrackingControl : MonoBehaviour
 
     public void StartLogging()
     {
+        // checks if logging was already started
         if (logging)
         {
             Debug.LogWarning("Logging was on when StartLogging was called. No new log was started.");
             return;
         }
 
+        // sets logging to true
         logging = true;
 
+        // creates log folder if none exists
         string logPath = useCustomLogPath ? customLogPath : Application.dataPath + "/Logs/";
-        Directory.CreateDirectory(logPath);
+        if (!Directory.Exists(logPath))
+        {
+            Directory.CreateDirectory(logPath);
+        }
 
+        // creates log file
         DateTime now = DateTime.Now;
-        fileName = "eyeTr-"+ System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+        fileName = "eyeTr-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
 
         string path = logPath + fileName + ".csv";
         writer = new StreamWriter(path);
@@ -203,6 +185,7 @@ public class EyeTrackingControl : MonoBehaviour
         gazeTimer += Time.deltaTime;
     }
 
+    // stops logging
     void StopLogging()
     {
         if (!logging)
@@ -244,12 +227,12 @@ public class EyeTrackingControl : MonoBehaviour
         string logPath = useCustomLogPath ? customLogPath : Application.dataPath + "/Logs/";
         string oldFileName = fileName + ".csv";
 
-        string newFileName = GameObject.Find("Sphere").GetComponent<StimControl>().logFile;
+        string newFileName = GameObject.Find("control").GetComponent<StimControl>().logFile;
         int lastIndex = Math.Max(newFileName.LastIndexOf('/'), newFileName.LastIndexOf('\\'));
         // If a slash or backslash is found, return the substring from just after it
         if (lastIndex != -1)
         {
-            newFileName = newFileName.Substring(lastIndex + 1);
+            newFileName =  newFileName.Substring(lastIndex + 1);
         }
         newFileName = newFileName.Replace("rtData", "eyeTr");
 
