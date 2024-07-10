@@ -557,22 +557,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1de47587f5c23e449a1813b78c03b5c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cueOn: 1
   pos:
   - 0
   stimuli:
-  - face1
-  keyCodes: 76000000620000006e000000
-  cueOn: 1
+  - CanvasE
+  - CanvasB
   instrTextValues:
   - "You will be reacting to three different faces in this protocol, and\r\n    pressing
     the keys v, b, and n for each one. Please try to react to the\r\n    faces and
     don't try to anticipate them. Press Spacebar when ready."
-  - This is Face 1. Press v to continue.
+  - This is letter 1. Press v to continue.
+  - This is letter 2. Press b to continue.
   - "Here are some practice rounds to familiarize you with the protocol.\r\n    Press
     Spacebar to begin."
   currentTrial: 1
-  trainingTrials: 3
-  trials: 5
+  trainingTrials: 10
+  trials: 100
+  keyCodes: 76000000620000006e000000
   preCue_time: 0.5
   cue_time: 0.2
   time_min: 0.5

@@ -87,7 +87,7 @@ public class StimControl : MonoBehaviour
     double getPosfromDeg(double x)
     {
         // Calculate arctan(x) and then divide by 2
-        double result = Math.Atan(x) / 2.0;
+        double result = Math.Tan(x) / 2.0;
         return result;
     }
 
