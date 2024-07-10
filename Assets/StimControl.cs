@@ -86,8 +86,12 @@ public class StimControl : MonoBehaviour
 
     double getPosfromDeg(double x)
     {
-        // Calculate arctan(x) and then divide by 2
-        double result = Math.Tan(x) / 2.0;
+        // Convert degrees to radians since Math.Tan expects radians
+        double radians = x * Math.PI / 180.0;
+        // Calculate tan(x) and then divide by 2
+        double result = Math.Tan(radians) / 2.0;
+        Debug.Log(x);
+        Debug.Log(result);
         return result;
     }
 
@@ -120,7 +124,7 @@ public class StimControl : MonoBehaviour
         yield return new WaitForSecondsRealtime(cueToStim_time);
 
         // shows stimulus
-        GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(posIndex), 0f, 0f);; // StimType appears
+        GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(pos[posIndex]), 0f, 0f);; // StimType appears
         log += DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // ObjShowTime
         start = true;
         in_use = false;
@@ -196,7 +200,7 @@ public class StimControl : MonoBehaviour
                 instrNum++;
                 instrText.GetComponent<TextMeshPro>().text = instrTextValues[instrNum];
                 GameObject.Find(stimuli[instrNum - 2]).transform.position = GameObject.Find("disappearPos").transform.position;
-                if (stimuli.Length < instrNum - 1)
+                if (stimuli.Length >= instrNum)
                 {
                     GameObject.Find(stimuli[instrNum - 1]).transform.position = GameObject.Find("deg0").transform.position;
                 }
@@ -206,7 +210,7 @@ public class StimControl : MonoBehaviour
                 instrNum++;
                 instrText.GetComponent<TextMeshPro>().text = instrTextValues[instrNum];
                 GameObject.Find(stimuli[instrNum - 2]).transform.position = GameObject.Find("disappearPos").transform.position;
-                if (stimuli.Length < instrNum - 1)
+                if (stimuli.Length >= instrNum)
                 {
                     GameObject.Find(stimuli[instrNum - 1]).transform.position = GameObject.Find("deg0").transform.position;
                 }

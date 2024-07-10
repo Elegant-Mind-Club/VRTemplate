@@ -560,15 +560,21 @@ MonoBehaviour:
   cueOn: 1
   pos:
   - 0
+  - 15
+  - 30
+  - -30
+  - 15
   stimuli:
   - CanvasE
   - CanvasB
+  - CanvasP
   instrTextValues:
   - "You will be reacting to three different faces in this protocol, and\r\n    pressing
     the keys v, b, and n for each one. Please try to react to the\r\n    faces and
     don't try to anticipate them. Press Spacebar when ready."
   - This is letter 1. Press v to continue.
   - This is letter 2. Press b to continue.
+  - This is letter 3. Press n to continue.
   - "Here are some practice rounds to familiarize you with the protocol.\r\n    Press
     Spacebar to begin."
   currentTrial: 1
