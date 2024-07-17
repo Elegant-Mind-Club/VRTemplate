@@ -20,7 +20,7 @@ public class StimControl : MonoBehaviour
     // independent variable being tested
     // calculated for 0.5m distance from camera to deg0
     public bool cueOn = true;
-    public double[] pos = { 0, 30 ,-30 }; // different random positions available (Unity object names)
+    public double[] pos = { 0, 30 ,-30 }; // different random positions available (degrees of ecc away from center)
     // public string[] pos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
     public string[] stimuli = { "face1", "face2", "face3" }; // names of different stimuli (Unity object names)
 
