@@ -21,6 +21,7 @@ public class StimControl : MonoBehaviour
     // calculated for 0.5m distance from camera to deg0
     public bool cueOn = true;
     public double[] pos = { 0, 30 ,-30 }; // different random positions available (Unity object names)
+    // public string[] pos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
     public string[] stimuli = { "face1", "face2", "face3" }; // names of different stimuli (Unity object names)
 
     // self explanatory
@@ -124,7 +125,20 @@ public class StimControl : MonoBehaviour
         yield return new WaitForSecondsRealtime(cueToStim_time);
 
         // shows stimulus
-        GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(pos[posIndex]), 0f, 0f);; // StimType appears
+        if (pos is double[])
+        {
+            double[] posArray = (double[])pos;
+            GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(posArray[posIndex]), 0f, 0f);
+        }
+        else if (pos is string[])
+        {
+            string[] posArray = (string[])pos;
+            GameObject.Find("cue").transform.position = GameObject.Find(posArray[posIndex]).transform.position; // changes to random position
+        }
+        else
+        {
+            Debug.LogError("pos is neither a double array nor a string array.");
+        }
         log += DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // ObjShowTime
         start = true;
         in_use = false;
