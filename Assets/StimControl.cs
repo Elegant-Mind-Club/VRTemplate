@@ -24,6 +24,10 @@ public class StimControl : MonoBehaviour
     public bool cueOn = true;
     public bool isOvert = true;
     public object[] pos = { 0, 30 ,-30 }; // different random positions available (degrees of ecc away from center)
+    
+    public double[] showPositions = { 0, 10, 20, 30 , -10, -20, -30 };
+    [TextArea]
+    public string Notes = "This is no longer where to edit positions (ask Mingda), but just to show you what positions are currently being used"; // Do not place your note/comment here. 
     // public object[] pos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
     public string[] stimuli = { "face1", "face2", "face3" }; // names of different stimuli (Unity object names)
 
