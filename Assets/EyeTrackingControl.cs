@@ -23,6 +23,7 @@ public class EyeTrackingControl : MonoBehaviour
     [Header("Gaze calibration settings")]
     [Tooltip("Legacy - 10 dots without priors; Fast: 5 dots; One Dot: quickest, least accurate")]
     public VarjoEyeTracking.GazeCalibrationMode gazeCalibrationMode = VarjoEyeTracking.GazeCalibrationMode.Fast;
+    public VarjoEyeTracking.HeadsetAlignmentGuidanceMode calibAutoContinue = VarjoEyeTracking.HeadsetAlignmentGuidanceMode.AutoContinueOnAcceptableHeadsetPosition;
 
     // keys for calibration and logging
     [Tooltip("Keyboard shortcut to request calibration")]
@@ -40,7 +41,7 @@ public class EyeTrackingControl : MonoBehaviour
     // stuff for logging data
     public string fileName;
     private static readonly string[] Columns = { "CaptureTime", "CalcXEccentricity", 
-        "CalcYEccentricity", "Valid"};
+        "CalcYEccentricity", "Valid", "CombinedGazeOrigin"};
     private static string calcPrecision = "F6"; // precision after decimal for calculations and tracking
     private const string ValidString = "VALID";
     private const string InvalidString = "INVALID";
@@ -87,7 +88,7 @@ public class EyeTrackingControl : MonoBehaviour
         if (Input.GetKeyDown(loggingToggleKey))
         {
             // Check if gaze is calibrated
-            if (VarjoEyeTracking.IsGazeCalibrated())
+            if (!VarjoEyeTracking.IsGazeCalibrated())
             {
                 Debug.Log("GAZE IS NOT CALIBRATED - isgazecalibrated:" + VarjoEyeTracking.IsGazeCalibrated());
             }
@@ -135,6 +136,8 @@ public class EyeTrackingControl : MonoBehaviour
         // Combined gaze validity
         bool invalid = data.status == VarjoEyeTracking.GazeStatus.Invalid;
         logData[3] = invalid ? InvalidString : ValidString;
+
+        logData[4] = invalid ? "" : data.gaze.forward.ToString(calcPrecision);
 
         Log(logData);
     }
@@ -203,7 +206,8 @@ public class EyeTrackingControl : MonoBehaviour
 
     public void CalibrateGaze()
     {
-        VarjoEyeTracking.RequestGazeCalibration(gazeCalibrationMode);
+        Debug.Log("Eye Tracking Calibration Starting...");
+        VarjoEyeTracking.RequestGazeCalibration(gazeCalibrationMode, calibAutoContinue);
     }
 
     void OnApplicationQuit()

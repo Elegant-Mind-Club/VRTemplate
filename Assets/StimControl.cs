@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using Random = System.Random;
 using System.IO;
 using System;
 using TMPro;
+using Palmmedia.ReportGenerator.Core.Parser.Analysis;
 
 /* NEEDS
  * - to be bound to one and only one object in the code
@@ -20,8 +22,9 @@ public class StimControl : MonoBehaviour
     // independent variable being tested
     // calculated for 0.5m distance from camera to deg0
     public bool cueOn = true;
-    public double[] pos = { 0, 30 ,-30 }; // different random positions available (degrees of ecc away from center)
-    // public string[] pos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
+    public bool isOvert = true;
+    public object[] pos = { 0, 30 ,-30 }; // different random positions available (degrees of ecc away from center)
+    // public object[] pos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
     public string[] stimuli = { "face1", "face2", "face3" }; // names of different stimuli (Unity object names)
 
     // self explanatory
@@ -84,7 +87,7 @@ public class StimControl : MonoBehaviour
     public GameObject instrText; // text object for instructions
     public TMP_InputField nameInputField; // UI object for name Input
     public string participantID;
-
+    public EventSystem eventSystem;
     double getPosfromDeg(double x)
     {
         // Convert degrees to radians since Math.Tan expects radians
@@ -111,8 +114,9 @@ public class StimControl : MonoBehaviour
             GameObject.Find("cue").transform.position = GameObject.Find("cuePos").transform.position; // Cue appears at center
             log = DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // CueShowTime
             yield return new WaitForSecondsRealtime(cue_time); // Cue stays there for this long
-
-            GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
+            if (isOvert){
+                GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
+            }
         }
         else
         {
@@ -125,15 +129,21 @@ public class StimControl : MonoBehaviour
         yield return new WaitForSecondsRealtime(cueToStim_time);
 
         // shows stimulus
-        if (pos is double[])
+        if (pos[0] is double)
         {
-            double[] posArray = (double[])pos;
+            double[] posArray = Array.ConvertAll(pos, item => (double)item);
             GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(posArray[posIndex]), 0f, 0f);
+            if (!isOvert && posArray[posIndex] == 0){
+                GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
+            }
         }
-        else if (pos is string[])
+        else if (pos[0] is string)
         {
-            string[] posArray = (string[])pos;
+            string[] posArray = Array.ConvertAll(pos, item => (string)item);
             GameObject.Find("cue").transform.position = GameObject.Find(posArray[posIndex]).transform.position; // changes to random position
+            if (!isOvert && posArray[posIndex] == "deg0"){
+                GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
+            }
         }
         else
         {
@@ -146,13 +156,27 @@ public class StimControl : MonoBehaviour
 
     void phase0() // participant name/ID input phase
     {
+        // Selects Input Field if space is pressed. Workaround for Unity Bug
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // Set the input field as the currently selected object
+            EventSystem.current.SetSelectedGameObject(nameInputField.gameObject, null);
+
+            // Optionally, focus on the input field to start typing immediately
+            nameInputField.ActivateInputField();
+        }
         // creates data file and sets participant name
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
             participantID = nameInputField.text;
+            string ovcoString = "covert";
+            if (isOvert)
+            {
+                ovcoString = "overt";
+            }
 
             // creates data folder / file
-            logFile = dataPath + participantID + "-rtData-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
+            logFile = dataPath + participantID + "-" + ovcoString + "rtData-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
             if (!Directory.Exists(dataPath))
             {
                 Directory.CreateDirectory(dataPath);
@@ -274,6 +298,10 @@ public class StimControl : MonoBehaviour
                 {
                     GameObject.Find(stimuli[k]).transform.position = GameObject.Find("disappearPos").transform.position;
                 }
+                if (!isOvert)
+                {
+                    GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
+                }
                 // resets response key
                 responseKey = "";
 
@@ -353,6 +381,10 @@ public class StimControl : MonoBehaviour
                 {
                     GameObject.Find(stimuli[k]).transform.position = GameObject.Find("disappearPos").transform.position;
                 }
+                if (!isOvert)
+                {
+                    GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
+                }
                 // resets the response key
                 responseKey = "";
                 // if the number of experimental trials specified has been reached, go to the next phase
@@ -381,7 +413,8 @@ public class StimControl : MonoBehaviour
     {
         // initiates variables
         instrText = GameObject.Find("instrText"); // text object used
-        nameInputField = GameObject.Find("nameInputField").GetComponent<TMP_InputField>(); ; // UI object for name Input
+        nameInputField = GameObject.Find("nameInputField").GetComponent<TMP_InputField>(); // UI object for name Input
+        eventSystem = GameObject.Find("EventSystem").GetComponent<EventSystem>();
     }
 
     void Update()
