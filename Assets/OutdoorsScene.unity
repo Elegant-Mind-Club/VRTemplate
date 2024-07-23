@@ -764,8 +764,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cueOn: 1
   isOvert: 1
-  Notes: This is no longer where to edit positions (ask Mingda), but just to show
-    you what positions are currently being used
+  Notes: Use EITHER stringPos OR doublePos. Make sure one is empty. stringPos is
+    used when you want to use objects as positions. doublePos is used when you want
+    to just set horizontal eccenctricity.
   stringPos: []
   doublePos:
   - 0
@@ -780,17 +781,17 @@ MonoBehaviour:
   - CanvasB
   - CanvasP
   instrTextValues:
-  - "You will be reacting to three different faces in this protocol, and\r\n    pressing
-    the keys v, b, and n for each one. Please try to react to the\r\n    faces and
-    don't try to anticipate them. Press Spacebar when ready."
-  - This is letter 1. Press v to continue.
-  - This is letter 2. Press b to continue.
-  - This is letter 3. Press n to continue.
+  - "You will be reacting to three different letters in this protocol, and\r\n   
+    pressing the keys v, b, and n for each one. Please try to react to the\r\n   
+    faces and don't try to anticipate them. Press Spacebar when ready."
+  - This is the letter E. Press v to continue.
+  - This is the letter B. Press b to continue.
+  - This is the letter P. Press n to continue.
   - "Here are some practice rounds to familiarize you with the protocol.\r\n    Press
     Spacebar to begin."
   currentTrial: 1
-  trainingTrials: 10
-  trials: 100
+  trainingTrials: 3
+  trials: 5
   keyCodes: 76000000620000006e000000
   preCue_time: 0.5
   cue_time: 0.2
