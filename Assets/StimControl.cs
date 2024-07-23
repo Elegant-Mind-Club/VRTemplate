@@ -23,26 +23,27 @@ public class StimControl : MonoBehaviour
     // calculated for 0.5m distance from camera to deg0
     public bool cueOn = true;
     public bool isOvert = true;
-    public object[] pos = { 0, 30 ,-30 }; // different random positions available (degrees of ecc away from center)
-    
-    public double[] showPositions = { 0, 10, 20, 30 , -10, -20, -30 };
+    // public string[] stringPos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
     [TextArea]
-    public string Notes = "This is no longer where to edit positions (ask Mingda), but just to show you what positions are currently being used"; // Do not place your note/comment here. 
-    // public object[] pos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
-    public string[] stimuli = { "face1", "face2", "face3" }; // names of different stimuli (Unity object names)
+    public string Notes = "Use EITHER stringPos OR doublePos. Make sure one is empty. stringPos is used when you want to use objects as positions. doublePos is used when you want to just set horizontal eccenctricity."; // Do not place your note/comment here. 
+                                           // Enter your note in the Unity Editor. 
+    public string[] stringPos = {}; // different random positions available (Unity object names)
+    public double[] doublePos = {0.0, 10.0, 20.0, 30.0, -10.0, -20.0, -30.0};
+    // public double[] doublePos = {};
+    public string[] stimuli = { "CanvasE", "CanvasB", "CanvasP" }; // names of different stimuli (Unity object names)
 
     // self explanatory
     public string[] instrTextValues = {
     // instruction 1
-    @"You will be reacting to three different faces in this protocol, and
+    @"You will be reacting to three different letters in this protocol, and
     pressing the keys v, b, and n for each one. Please try to react to the
     faces and don't try to anticipate them. Press Spacebar when ready.",
     // instruction 2
-    @"This is Face 1. Press v to continue.",
+    @"This is the letter E. Press v to continue.",
     // instruction 3
-    @"This is Face 2. Press b to continue.",
+    @"This is the letter B. Press b to continue.",
     // instruction 4
-    @"This is Face 3. Press n to continue.",
+    @"This is the letter P. Press n to continue.",
     // instruction 5
     @"Here are some practice rounds to familiarize you with the protocol.
     Press Spacebar to begin.",
@@ -106,7 +107,19 @@ public class StimControl : MonoBehaviour
     IEnumerator change()
     {
         // randomizes stimulus every round
-        posIndex = rnd.Next(0, pos.Length);
+        // shows stimulus
+        if (stringPos == null || stringPos.Length == 0)
+        {
+            posIndex = rnd.Next(0, doublePos.Length);
+        }
+        else if (doublePos == null || doublePos.Length == 0)
+        {
+            posIndex = rnd.Next(0, stringPos.Length);
+        }
+        else
+        {
+            Debug.LogError("pos is neither a double array nor a string array.");
+        }
         stimIndex = rnd.Next(0, stimuli.Length);
         currentTrial++;
 
@@ -133,19 +146,17 @@ public class StimControl : MonoBehaviour
         yield return new WaitForSecondsRealtime(cueToStim_time);
 
         // shows stimulus
-        if (pos[0] is double)
+        if (stringPos == null || stringPos.Length == 0)
         {
-            double[] posArray = Array.ConvertAll(pos, item => (double)item);
-            GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(posArray[posIndex]), 0f, 0f);
-            if (!isOvert && posArray[posIndex] == 0){
+            GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(doublePos[posIndex]), 0f, 0f);
+            if (!isOvert && doublePos[posIndex] == 0){
                 GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
             }
         }
-        else if (pos[0] is string)
+        else if (doublePos == null || doublePos.Length == 0)
         {
-            string[] posArray = Array.ConvertAll(pos, item => (string)item);
-            GameObject.Find("cue").transform.position = GameObject.Find(posArray[posIndex]).transform.position; // changes to random position
-            if (!isOvert && posArray[posIndex] == "deg0"){
+            GameObject.Find("cue").transform.position = GameObject.Find(stringPos[posIndex]).transform.position; // changes to random position
+            if (!isOvert && stringPos[posIndex] == "deg0"){
                 GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
             }
         }
@@ -368,7 +379,20 @@ public class StimControl : MonoBehaviour
                 {
                     // logs data
                     log += DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // ReactionTime
-                    log += pos[posIndex] + "," + stimuli[stimIndex] + "," + responseKey + ","; // independentVar, StimType, Guess
+                    
+                    // shows stimulus
+                    if (stringPos == null || stringPos.Length == 0)
+                    {
+                        log += doublePos[posIndex] + "," + stimuli[stimIndex] + "," + responseKey + ","; // independentVar, StimType, Guess
+                    }
+                    else if (doublePos == null || doublePos.Length == 0)
+                    {
+                        log += stringPos[posIndex] + "," + stimuli[stimIndex] + "," + responseKey + ","; // independentVar, StimType, Guess
+                    }
+                    else
+                    {
+                        Debug.LogError("pos is neither a double array nor a string array.");
+                    }
                     if (stimuli[stimIndex] == responseKey)
                     {
                         log += "True\n";
@@ -415,7 +439,7 @@ public class StimControl : MonoBehaviour
 
     void Start()
     {
-        // initiates variables
+        // initializes variables
         instrText = GameObject.Find("instrText"); // text object used
         nameInputField = GameObject.Find("nameInputField").GetComponent<TMP_InputField>(); // UI object for name Input
         eventSystem = GameObject.Find("EventSystem").GetComponent<EventSystem>();
