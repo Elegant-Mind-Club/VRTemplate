@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 2159.6301, g: 2262.1077, b: 3280.3794, a: 1}
+  m_IndirectSpecularColor: {r: 2159.6458, g: 2262.2522, b: 3280.3325, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -627,7 +627,7 @@ GameObject:
   - component: {fileID: 189350943}
   - component: {fileID: 189350942}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: textInputCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -704,7 +704,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 189350941}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 0.001, y: 0.001, z: 0.001}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -766,7 +766,7 @@ MonoBehaviour:
   isOvert: 1
   Notes: Use EITHER stringPos OR doublePos. Make sure one is empty. stringPos is
     used when you want to use objects as positions. doublePos is used when you want
-    to just set horizontal eccenctricity.
+    to just set horizontal eccentricity.
   stringPos: []
   doublePos:
   - 0
@@ -781,14 +781,14 @@ MonoBehaviour:
   - CanvasB
   - CanvasP
   instrTextValues:
-  - "You will be reacting to three different letters in this protocol, and\r\n   
-    pressing the keys v, b, and n for each one. Please try to react to the\r\n   
+  - "You will be reacting to three different letters in this protocol, and\r\n       
+    pressing the keys v, b, and n for each one. Please try to react to the\r\n       
     faces and don't try to anticipate them. Press Spacebar when ready."
   - This is the letter E. Press v to continue.
   - This is the letter B. Press b to continue.
   - This is the letter P. Press n to continue.
-  - "Here are some practice rounds to familiarize you with the protocol.\r\n    Press
-    Spacebar to begin."
+  - "Here are some practice rounds to familiarize you with the protocol.\r\n       
+    Press Spacebar to begin."
   currentTrial: 1
   trainingTrials: 3
   trials: 5
@@ -799,7 +799,8 @@ MonoBehaviour:
   time_max: 1.5
   cueToStim_time: 0
   countdownTime: 5
-  phase: 0
+  calibrationPeriodCycle: 0
+  phase: 1
   logFile: 
   instrText: {fileID: 0}
   nameInputField: {fileID: 0}
@@ -1618,10 +1619,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Wait for eye tracking calibration to finish
-
-    Enter your name and press
-    enter when done'
+  m_text: Enter your name and press enter when done
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1648,8 +1646,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34.47
-  m_fontSizeBase: 34.47
+  m_fontSize: 28
+  m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2678,8 +2676,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94a84025532663b49a8d4cf65e835f3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nameInputField: {fileID: 0}
-  eventSystem: {fileID: 0}
 --- !u!1 &1328071649
 GameObject:
   m_ObjectHideFlags: 0

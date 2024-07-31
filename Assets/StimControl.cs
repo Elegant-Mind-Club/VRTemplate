@@ -31,9 +31,14 @@ public class StimControl : MonoBehaviour
     // Instruction text values
     public string[] instrTextValues = {
         // Instruction 1
-        @"You will be reacting to three different letters in this protocol, and
-        pressing the keys v, b, and n for each one. Please try to react to the
-        faces and don't try to anticipate them. Press Spacebar when ready.",
+        @"
+        You will be reacting to three different
+        letters in this protocol, and pressing
+        the keys v, b, and n for each one.
+        Please try to react to the faces and
+        don't try to anticipate them.
+
+        Press Spacebar when ready.",
         // Instruction 2
         @"This is the letter E. Press v to continue.",
         // Instruction 3
@@ -188,6 +193,7 @@ public class StimControl : MonoBehaviour
             // Removes text
             instrText.GetComponent<TextMeshPro>().text = "";
             instrText.transform.position = GameObject.Find("disappearPos").transform.position;
+            GameObject.Find("eyeTracking").GetComponent<EyeTrackingControl>().StartLogging();
             // Sets up for phase 2
             GameObject.Find("textInputCanvas").transform.position = GameObject.Find("textPos").transform.position;
             phase = 2;
@@ -227,7 +233,7 @@ public class StimControl : MonoBehaviour
             Debug.Log($"Data file started for {nameInputField.text}");
 
             // Moves canvas to behind the plane
-            GameObject.Find("Canvas").transform.position = GameObject.Find("disappearPos").transform.position; // Canvas disappears
+            GameObject.Find("textInputCanvas").transform.position = GameObject.Find("disappearPos").transform.position; // Canvas disappears
 
             // Warns if logging has not started
             bool loggingStarted = GameObject.Find("eyeTracking").GetComponent<EyeTrackingControl>().logging;
