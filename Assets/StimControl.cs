@@ -1,98 +1,98 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Random = System.Random;
 using System.IO;
 using System;
 using TMPro;
-using Palmmedia.ReportGenerator.Core.Parser.Analysis;
+using Varjo.XR;
 
-/* NEEDS
- * - to be bound to one and only one object in the code
- * - all names in the first section of variables to be real objects
- *     - and match their case sensitive names
- * - a position to show participant text called textPos
- * - a position to show the cue called cuePos
- * - a object called "Cue"
+/* Requirements:
+ * - This script must be attached to only one GameObject in the scene.
+ * - All names in the first section of variables must correspond to real objects in the scene,
+ *   and their names must match exactly, including case sensitivity.
+ * - An object called "textInputCanvas" must exist in the scene.
+ * - An object called "cue" must exist in the scene.
+ * - Positions for displaying participant text and the cue should be assigned to variables "textPos" and "cuePos" respectively.
  */
 
 public class StimControl : MonoBehaviour
 {
-    // independent variable being tested
-    // calculated for 0.5m distance from camera to deg0
     public bool cueOn = true;
     public bool isOvert = true;
-    // public string[] stringPos = { "1m", "2m" , "3m" }; // different random positions available (Unity object names)
     [TextArea]
-    public string Notes = "Use EITHER stringPos OR doublePos. Make sure one is empty. stringPos is used when you want to use objects as positions. doublePos is used when you want to just set horizontal eccenctricity."; // Do not place your note/comment here. 
-                                           // Enter your note in the Unity Editor. 
-    public string[] stringPos = {}; // different random positions available (Unity object names)
-    public double[] doublePos = {0.0, 10.0, 20.0, 30.0, -10.0, -20.0, -30.0};
-    // public double[] doublePos = {};
-    public string[] stimuli = { "CanvasE", "CanvasB", "CanvasP" }; // names of different stimuli (Unity object names)
+    public string Notes = "Use EITHER stringPos OR doublePos. Make sure one is empty. stringPos is used when you want to use objects as positions. doublePos is used when you want to just set horizontal eccentricity.";
+    // Calculated for 0.5m distance from camera to deg0
+    public string[] stringPos = {}; // Different random positions available (Unity object names)
+    public double[] doublePos = {0.0, 10.0, 20.0, 30.0, -10.0, -20.0, -30.0}; // Different random horizontal positions
+    // Names of different stimuli (Unity object names)
+    public string[] stimuli = { "CanvasE", "CanvasB", "CanvasP" };
 
-    // self explanatory
+    // Instruction text values
     public string[] instrTextValues = {
-    // instruction 1
-    @"You will be reacting to three different letters in this protocol, and
-    pressing the keys v, b, and n for each one. Please try to react to the
-    faces and don't try to anticipate them. Press Spacebar when ready.",
-    // instruction 2
-    @"This is the letter E. Press v to continue.",
-    // instruction 3
-    @"This is the letter B. Press b to continue.",
-    // instruction 4
-    @"This is the letter P. Press n to continue.",
-    // instruction 5
-    @"Here are some practice rounds to familiarize you with the protocol.
-    Press Spacebar to begin.",
+        // Instruction 1
+        @"You will be reacting to three different letters in this protocol, and
+        pressing the keys v, b, and n for each one. Please try to react to the
+        faces and don't try to anticipate them. Press Spacebar when ready.",
+        // Instruction 2
+        @"This is the letter E. Press v to continue.",
+        // Instruction 3
+        @"This is the letter B. Press b to continue.",
+        // Instruction 4
+        @"This is the letter P. Press n to continue.",
+        // Instruction 5
+        @"Here are some practice rounds to familiarize you with the protocol.
+        Press Spacebar to begin.",
     };
 
-    // counter for finishing the program
+    // Counter for finishing the program
     public int currentTrial = 1;
     public int trainingTrials = 3;
     public int trials = 5;
 
+    // Key codes for different stimuli (Unity object names)
+    public KeyCode[] keyCodes = { KeyCode.V, KeyCode.B, KeyCode.N };
 
-    public KeyCode[] keyCodes = { KeyCode.V, KeyCode.B, KeyCode.N }; // names of different stimuli (Unity object names)
+    // Global variables for time
+    public float preCue_time = 0.5f; // Wait time before cue is shown after trial ends
+    public float cue_time = 0.2f; // Time that the cue is on screen
+    public float time_min = 0.5f; // Minimum time between cue disappearing and stimulus    
+    public float time_max = 1.5f; // Maximum time between cue disappearing and stimulus
+    public float cueToStim_time = 0f; // Randomly set later in the code
 
-    // global variables for time
-    public float preCue_time = (float)0.5; // wait time before cue is shown after trial ends
-    public float cue_time = (float)0.2; // time that the cue is on screen
-    public float time_min = (float)0.5; // minimum time between cue disappears and stimulus    
-    public float time_max = (float)1.5; // maximum time between cue disappears and stimulus
-    public float cueToStim_time = (float)0; // randomly set later in code
+    public int countdownTime = 5; // Time between training and experiment phase
+    public int calibrationPeriodCycle = 0; // Time between training and experiment phase
 
-    public int countdownTime = 5; // time between training and experiment phase
-
-    // phase of experiment
-    public int phase = 0;
-    private bool in_use = false;    // avoid user clicking multiple buttons at same time
-    private bool start = false;     // it's the first trial
+    // Phase of the experiment
+    public int phase = 1;
+    private bool in_use = false;    // Avoid user clicking multiple buttons at the same time
+    private bool start = false;     // Indicates the first trial
     /*
-     * Phase -1,-2,-3... = in-between phase 1, 2, or 3, while co-routines are in the middle of running
-     * Phase 0 = name input
-     * Phase 1 = start / instructions
-     * Phase 2 = training phase
-     * Phase 3 = break 
-     * Phase 4 = data taking phase
-     * Phase 5 = thank you screen / demographics survey reminder
-     * in_use = currently going through the change coroutine, has not shown next stimulus yet
+     * Phase -1, -2, -3... = In-between phase 1, 2, or 3, while co-routines are running
+     * Phase 0 = *Unused for now*
+     * Phase 1 = Waiting for eye tracking to calibrate
+     * Phase 2 = Name input
+     * Phase 3 = Start / Instructions
+     * Phase 4 = Training phase
+     * Phase 5 = Break 
+     * Phase 6 = Data taking phase
+     * Phase 7 = Thank you screen / Demographics survey reminder
+     * in_use = Currently going through the change coroutine, has not shown the next stimulus yet
      */
 
-    //misc variables
+    // Misc variables
     static string dataPath = Directory.GetCurrentDirectory() + "/Assets/Data/";
-    public string logFile; // fileName, set in phase 0 after getting participant name
+    public string logFile; // File name, set in phase 0 after getting participant name
     Random rnd = new Random();
     private string responseKey = "";
-    private string log; // new line of data
-    private int instrNum = 0; // index used to increment instructions
-    private int posIndex, stimIndex; // indices for pos and stimuli respectively randomized later in code (need global scope since they're used in multiple functions)
-    public GameObject instrText; // text object for instructions
-    public TMP_InputField nameInputField; // UI object for name Input
+    private string log; // New line of data
+    private int instrNum = 0; // Index used to increment instructions
+    private int posIndex, stimIndex; // Indices for position and stimuli respectively randomized later in code (need global scope since they're used in multiple functions)
+    public GameObject instrText; // Text object for instructions
+    public TMP_InputField nameInputField; // UI object for name input
     public string participantID;
     public EventSystem eventSystem;
+
     double getPosfromDeg(double x)
     {
         // Convert degrees to radians since Math.Tan expects radians
@@ -106,8 +106,8 @@ public class StimControl : MonoBehaviour
 
     IEnumerator change()
     {
-        // randomizes stimulus every round
-        // shows stimulus
+        // Randomizes stimulus every round
+        // Shows stimulus
         if (stringPos == null || stringPos.Length == 0)
         {
             posIndex = rnd.Next(0, doublePos.Length);
@@ -123,15 +123,15 @@ public class StimControl : MonoBehaviour
         stimIndex = rnd.Next(0, stimuli.Length);
         currentTrial++;
 
-        yield return new WaitForSecondsRealtime(preCue_time); // wait before trial starts
-                                                              // wait time between cue and stimulus
+        yield return new WaitForSecondsRealtime(preCue_time); // Wait before trial starts
 
         if (cueOn == true)
         {
             GameObject.Find("cue").transform.position = GameObject.Find("cuePos").transform.position; // Cue appears at center
             log = DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // CueShowTime
             yield return new WaitForSecondsRealtime(cue_time); // Cue stays there for this long
-            if (isOvert){
+            if (isOvert)
+            {
                 GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
             }
         }
@@ -142,21 +142,23 @@ public class StimControl : MonoBehaviour
 
         cueToStim_time = (float)((rnd.NextDouble() * (time_max - time_min)) + time_min);
 
-        // waits before showing stimulus
+        // Waits before showing stimulus
         yield return new WaitForSecondsRealtime(cueToStim_time);
 
-        // shows stimulus
+        // Shows stimulus
         if (stringPos == null || stringPos.Length == 0)
         {
             GameObject.Find(stimuli[stimIndex]).transform.position = new Vector3((float)getPosfromDeg(doublePos[posIndex]), 0f, 0f);
-            if (!isOvert && doublePos[posIndex] == 0){
+            if (!isOvert && doublePos[posIndex] == 0)
+            {
                 GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
             }
         }
         else if (doublePos == null || doublePos.Length == 0)
         {
-            GameObject.Find("cue").transform.position = GameObject.Find(stringPos[posIndex]).transform.position; // changes to random position
-            if (!isOvert && stringPos[posIndex] == "deg0"){
+            GameObject.Find("cue").transform.position = GameObject.Find(stringPos[posIndex]).transform.position; // Changes to random position
+            if (!isOvert && stringPos[posIndex] == "deg0")
+            {
                 GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
             }
         }
@@ -169,7 +171,32 @@ public class StimControl : MonoBehaviour
         in_use = false;
     }
 
-    void phase0() // participant name/ID input phase
+    IEnumerator phase1() // Eye Tracking Calibration
+    {
+        phase *= -1;
+        // Update the text with the current number of periods
+        instrText.GetComponent<TextMeshPro>().text = 
+        @"(Press Backslash to restart calibration)
+        Eye tracking calibration" + new string('.', calibrationPeriodCycle);
+        // Increment the period count, reset if it reaches 4
+        calibrationPeriodCycle = (calibrationPeriodCycle + 1) % 4;
+
+        yield return new WaitForSecondsRealtime(1);
+        // If calibration ends, sets up the next phase
+        if (VarjoEyeTracking.IsGazeCalibrated())
+        {
+            // Removes text
+            instrText.GetComponent<TextMeshPro>().text = "";
+            instrText.transform.position = GameObject.Find("disappearPos").transform.position;
+            // Sets up for phase 2
+            GameObject.Find("textInputCanvas").transform.position = GameObject.Find("textPos").transform.position;
+            phase = 2;
+            yield break;
+        }
+        phase *= -1;
+    }
+
+    void phase2() // Participant name/ID input phase
     {
         // Selects Input Field if space is pressed. Workaround for Unity Bug
         if (Input.GetKeyDown(KeyCode.Space))
@@ -180,7 +207,7 @@ public class StimControl : MonoBehaviour
             // Optionally, focus on the input field to start typing immediately
             nameInputField.ActivateInputField();
         }
-        // creates data file and sets participant name
+        // Creates data file and sets participant name
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
             participantID = nameInputField.text;
@@ -190,7 +217,7 @@ public class StimControl : MonoBehaviour
                 ovcoString = "overt";
             }
 
-            // creates data folder / file
+            // Creates data folder / file
             logFile = dataPath + participantID + "-" + ovcoString + "rtData-" + System.DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + ".csv";
             if (!Directory.Exists(dataPath))
             {
@@ -198,26 +225,26 @@ public class StimControl : MonoBehaviour
             }
             File.WriteAllText(logFile, "CueShowTime,ObjShowTime,ReactionTime,Eccentricity,StimType,Guess,Correct\n");
             Debug.Log($"Data file started for {nameInputField.text}");
-            
-            // moves canvas to behind the plane
-            GameObject.Find("Canvas").transform.position = GameObject.Find("disappearPos").transform.position; // canvas disappears
-            
-            // warns if logging has not started
+
+            // Moves canvas to behind the plane
+            GameObject.Find("Canvas").transform.position = GameObject.Find("disappearPos").transform.position; // Canvas disappears
+
+            // Warns if logging has not started
             bool loggingStarted = GameObject.Find("eyeTracking").GetComponent<EyeTrackingControl>().logging;
             if (!loggingStarted)
             {
                 Debug.Log("Eye tracking was not started.");
             }
 
-            // sets things up for phase 1, showing instruction 1
-            phase = 1;
+            // Sets things up for phase 3, showing instruction 1
+            phase = 3;
             instrText.GetComponent<TextMeshPro>().text = instrTextValues[instrNum];
             instrText.transform.position = GameObject.Find("textPos").transform.position;
             return;
         }
     }
 
-    void phase1() // start and instruction phase
+    void phase3() // Start and instruction phase
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -237,10 +264,10 @@ public class StimControl : MonoBehaviour
             }
             else if (instrNum == stimuli.Length + 1)
             {
-                // Removes instruction text and sets up phase 2
+                // Removes instruction text and sets up phase 4
                 instrText.transform.position = GameObject.Find("disappearPos").transform.position;
-                // setup for phase 2, starts the first training trial
-                phase = 2;
+                // Setup for phase 4, starts the first training trial
+                phase = 4;
                 StartCoroutine(change());
             }
         }
@@ -277,38 +304,36 @@ public class StimControl : MonoBehaviour
         }
     }
 
-
-
-    IEnumerator phase2() // training phase
+    IEnumerator phase4() // Training phase
     {
         phase *= -1;
-        // checks if a trial is currently running
+        // Checks if a trial is currently running
         if (!in_use)
         {
-            // sets response key
+            // Sets response key
             if (Input.GetKeyDown(KeyCode.V)) { responseKey = stimuli[0]; }
             else if (Input.GetKeyDown(KeyCode.B)) { responseKey = stimuli[1]; }
             else if (Input.GetKeyDown(KeyCode.N)) { responseKey = stimuli[2]; }
-            // if one of the buttons has been pressed, log data and set up next trial
+            // If one of the buttons has been pressed, log data and set up next trial
             if (responseKey != "")
             {
                 in_use = true;
-                // displays correct or incorrect for the participant
+                // Displays correct or incorrect for the participant
                 if (stimuli[stimIndex] == responseKey)
                 {
                     instrText.GetComponent<TextMeshPro>().text = "Correct!";
                     instrText.transform.position = GameObject.Find("textPos").transform.position;
-                    yield return new WaitForSecondsRealtime((float)1.5);
+                    yield return new WaitForSecondsRealtime(1.5f);
                     instrText.transform.position = GameObject.Find("disappearPos").transform.position;
                 }
                 else
                 {
                     instrText.GetComponent<TextMeshPro>().text = "Incorrect.";
                     instrText.transform.position = GameObject.Find("textPos").transform.position;
-                    yield return new WaitForSecondsRealtime((float)1.5);
+                    yield return new WaitForSecondsRealtime(1.5f);
                     instrText.transform.position = GameObject.Find("disappearPos").transform.position;
                 }
-                // removes all stimuli to behind the plane
+                // Removes all stimuli to behind the plane
                 for (int k = 0; k < stimuli.Length; k++)
                 {
                     GameObject.Find(stimuli[k]).transform.position = GameObject.Find("disappearPos").transform.position;
@@ -317,70 +342,70 @@ public class StimControl : MonoBehaviour
                 {
                     GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
                 }
-                // resets response key
+                // Resets response key
                 responseKey = "";
 
-                // if the number of training trials specified has been reached, set up phase 3
+                // If the number of training trials specified has been reached, set up phase 5
                 if (currentTrial > trainingTrials)
                 {
-                    // removes correct or incorrect
+                    // Removes correct or incorrect
                     instrText.GetComponent<TextMeshPro>().text = "";
                     instrText.transform.position = GameObject.Find("disappearPos").transform.position;
-                    // resets trial counter, and sets up phase 3
+                    // Resets trial counter, and sets up phase 5
                     currentTrial = 1;
-                    phase = 3;
+                    phase = 5;
                     yield break;
                 }
-                //starts next trial
+                // Starts the next trial
                 StartCoroutine(change());
             }
         }
         phase *= -1;
     }
 
-    IEnumerator phase3() // break phase
+    IEnumerator phase5() // Break phase
     {
         phase *= -1;
-        // shows and updates text for break
+        // Shows and updates text for the break
         instrText.GetComponent<TextMeshPro>().text = $"Training has finished. The experiment will begin in {countdownTime} seconds";
         instrText.transform.position = GameObject.Find("textPos").transform.position;
-        yield return new WaitForSecondsRealtime((float)1);
+        yield return new WaitForSecondsRealtime(1f);
         countdownTime -= 1;
-        // if countdown reaches 0, sets up next phase
+        // If countdown reaches 0, sets up the next phase
         if (countdownTime == 0)
         {
-            // removes text
+            // Removes text
             instrText.GetComponent<TextMeshPro>().text = "";
             instrText.transform.position = GameObject.Find("disappearPos").transform.position;
-            // sets up phase 4, starting the first trial
+            // Sets up phase 6, starting the first trial
             StartCoroutine(change());
             start = false;
-            phase = 4;
+            phase = 6;
             yield break;
         }
         phase *= -1;
     }
 
-    void phase4() // data taking phase
+    void phase6() // Data taking phase
     {
-        // checks if a trial is currently running
+        // Checks if a trial is currently running
         if (!in_use)
         {
-            // sets response key
+            // Sets response key
             if (Input.GetKeyDown(KeyCode.V)) { responseKey = stimuli[0]; }
             else if (Input.GetKeyDown(KeyCode.B)) { responseKey = stimuli[1]; }
             else if (Input.GetKeyDown(KeyCode.N)) { responseKey = stimuli[2]; }
-            // if one of the buttons has been pressed, log data and set up next trial
+            // If one of the buttons has been pressed, log data and set up next trial
             if (responseKey != "")
             {
                 in_use = true;
-                // only logs data after the first trial that started in the last phase
+                // Only logs data after the first trial that started in the last phase
                 if (start)
                 {
-                    // logs data
+                    // Logs data
                     log += DateTimeOffset.Now.ToUnixTimeMilliseconds() + ","; // ReactionTime
-                    
-                    // shows stimulus
+
+                    // Shows stimulus
                     if (stringPos == null || stringPos.Length == 0)
                     {
                         log += doublePos[posIndex] + "," + stimuli[stimIndex] + "," + responseKey + ","; // independentVar, StimType, Guess
@@ -404,7 +429,7 @@ public class StimControl : MonoBehaviour
                     File.AppendAllText(logFile, log);
                     log = "";
                 }
-                // removes stimuli to behind plane
+                // Removes stimuli to behind the plane
                 for (int k = 0; k < stimuli.Length; k++)
                 {
                     GameObject.Find(stimuli[k]).transform.position = GameObject.Find("disappearPos").transform.position;
@@ -413,12 +438,12 @@ public class StimControl : MonoBehaviour
                 {
                     GameObject.Find("cue").transform.position = GameObject.Find("disappearPos").transform.position; // Cue disappears
                 }
-                // resets the response key
+                // Resets the response key
                 responseKey = "";
-                // if the number of experimental trials specified has been reached, go to the next phase
+                // If the number of experimental trials specified has been reached, go to the next phase
                 if (currentTrial > trials)
                 {
-                    phase = 5;
+                    phase = 7;
                     return;
                 }
                 StartCoroutine(change());
@@ -426,68 +451,74 @@ public class StimControl : MonoBehaviour
         }
     }
 
-    IEnumerator phase5() // thank you screen / demographics survey reminder
+    IEnumerator phase7() // Thank you screen / demographics survey reminder
     {
         phase *= -1;
-        // shows text for 2 seconds and ends the protocol
+        // Shows text for 2 seconds and ends the protocol
         instrText.GetComponent<TextMeshPro>().text = "Thank you for taking data for us! Please take your demographics survey now";
         instrText.transform.position = GameObject.Find("textPos").transform.position;
-        yield return new WaitForSecondsRealtime((float)2);
+        yield return new WaitForSecondsRealtime(2f);
         UnityEditor.EditorApplication.isPlaying = false;
         phase *= -1;
     }
 
     void Start()
     {
-        // initializes variables
-        instrText = GameObject.Find("instrText"); // text object used
-        nameInputField = GameObject.Find("nameInputField").GetComponent<TMP_InputField>(); // UI object for name Input
+        // Initializes variables
+        instrText = GameObject.Find("instrText"); // Text object used
+        nameInputField = GameObject.Find("nameInputField").GetComponent<TMP_InputField>(); // UI object for name input
         eventSystem = GameObject.Find("EventSystem").GetComponent<EventSystem>();
+        instrText.transform.position = GameObject.Find("textPos").transform.position;
     }
 
     void Update()
     {
-        // checks if escape is pressed to end the protocol
+        // Checks if escape is pressed to end the protocol
         if (Input.GetKey(KeyCode.Escape))
         {
-            // this only works in editor view
+            // This only works in editor view
             UnityEditor.EditorApplication.isPlaying = false;
-            // this only works for built programs
+            // This only works for built programs
             // Application.Quit();
         }
-        // runs code depending on which phase is currently ongoing
+        // Runs code depending on which phase is currently ongoing
         else if (phase < 0)
         {
             return;
         }
-        else if (phase == 0) // name input
+        else if (phase == 1) // In instructions / start phase
         {
-            phase0();
+            StartCoroutine(phase1());
         }
-        else if (phase == 1) // in instructions / start phase
+        else if (phase == 2) // In training phase
         {
-            phase1();
+            phase2();
         }
-        else if (phase == 2) // in training phase
+        else if (phase == 3) // Break between training and data taking
         {
-            StartCoroutine(phase2());
+            phase3();
         }
-        else if (phase == 3) // break between training and data taking
+        else if (phase == 4) // In data taking phase
         {
-            StartCoroutine(phase3());
+            StartCoroutine(phase4());
         }
-        else if (phase == 4) // in data taking phase
-        {
-            phase4();
-        }
-        else if (phase == 5) // thank you / demographics survey reminder
+        else if (phase == 5) // Thank you / demographics survey reminder
         {
             StartCoroutine(phase5());
         }
+        else if (phase == 6) // In data taking phase
+        {
+            phase6();
+        }
+        else if (phase == 7) // In data taking phase
+        {
+            StartCoroutine(phase7());
+        }
     }
+
     void OnApplicationQuit()
     {
-        // adds pc info to the 
+        // Adds PC info to the data file
         // Check if the file exists
         string pcDataFilePath = Directory.GetCurrentDirectory() + "/Assets/Data/runData.csv";
         if (!File.Exists(pcDataFilePath))
@@ -510,7 +541,7 @@ public class StimControl : MonoBehaviour
             // If a slash or backslash is found, return the substring from just after it
             if (lastIndex != -1)
             {
-                nameAndTime =  logFile.Substring(lastIndex + 1);
+                nameAndTime = logFile.Substring(lastIndex + 1);
             }
 
             writer.WriteLine($"{computerName},{pcID},{nameAndTime},{currentTrial}");
