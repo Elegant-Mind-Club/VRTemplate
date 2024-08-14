@@ -35,7 +35,7 @@ public class StimControl : MonoBehaviour
         You will be reacting to three different
         letters in this protocol, and pressing
         the keys v, b, and n for each one.
-        Please try to react to the faces and
+        Please try to react to the letters and
         don't try to anticipate them.
 
         Press Spacebar when ready.",

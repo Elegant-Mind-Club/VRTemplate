@@ -42,6 +42,7 @@ for i = 1:length(fileList)
     data{i, 2} = fileList(i).name;
     data{i, 3} = dataImport;
 end
+
 % remove all incorrect trials and trials > 1.2s from "data", then subtracts
 % the time delay
 for i = 1:height(data)
